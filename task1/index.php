@@ -75,6 +75,8 @@ class SingleParam implements ICheckable{
 class StringValidator{
     private $instance;
     private $checkingParams = [];
+    private $toClose;
+
     public function __construct(){}
 
     public function addValidationParam($checkingParams){
@@ -111,7 +113,15 @@ class StringValidator{
             foreach ($this->checkingParams as $checkingParam){
                 if(!$checkingParam->checkChar($inputString{$i})){
                     return false;
-                } 
+                }
+                else {
+                    if(!empty($this->toClose)){
+                        
+                    }
+                    else{
+                        $this->toClose = $checkingParam;
+                    }
+                }
             }
             $state = 0;
             foreach ($this->checkingParams as $checkingParam){
