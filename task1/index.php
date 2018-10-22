@@ -33,7 +33,7 @@ class DoubleParam implements ICheckable{
     }
     
     public function issetParam($param){
-        return array_search($param, $this->toArray()) !== false;
+        return in_array($param, $this->toArray());
     }
     
     public function clearState(){
@@ -64,7 +64,7 @@ class SingleParam implements ICheckable{
     }
     
     public function issetParam($param){
-        return array_search($param, $this->toArray()) !== false;
+        return in_array($param, $this->toArray());
     }
     
     public function clearState(){
@@ -75,7 +75,7 @@ class SingleParam implements ICheckable{
 class StringValidator{
     private $instance;
     private $checkingParams = [];
-    private $toClose;
+    private $toClose = [];
 
     public function __construct(){}
 
@@ -109,6 +109,7 @@ class StringValidator{
     
     public function validateString($inputString){
         $this->clearParams();
+        $this->toClose = [];
         for ($i=0;$i<strlen($inputString);$i++){
             foreach ($this->checkingParams as $checkingParam){
                 if(!$checkingParam->checkChar($inputString{$i})){
@@ -116,30 +117,45 @@ class StringValidator{
                 }
                 else {
                     if(!empty($this->toClose)){
-                        
+                        if($this->searchParamInToClose($checkingParam)){
+                            echo "aouaou";
+                            if ( !$this->checkParamWithLastFromToClose($chekingParam) ){
+                                return false;
+                            }
+                            if ($checkingParam->getState() < 1){
+                                echo 'aou';
+                                array_pop($this->toClose);
+                            }
+                        }
+                        else{
+                            array_push($this->toClose,$checkingParam);
+                        }
                     }
                     else{
-                        $this->toClose = $checkingParam;
+                        array_push($this->toClose,$checkingParam);
                     }
                 }
             }
-            $state = 0;
-            foreach ($this->checkingParams as $checkingParam){
-                $state += $checkingParam->getState();
-            }
-            if ( $state > 1 ){
-                return false;
-            }
+            print_r($this->toClose);
+            return empty($this->toClose);
         }
         
-        return true;
+        return false;
+    }
+    
+    private function searchParamInToClose($param){
+        
+    }
+    
+    private function checkParamWithLastFromToClose($param){
+        return $this->toClose[count($this->toClose)-1] == $param;
     }
    
-   public function clearParams(){
-       foreach ($this->checkingParams as $checkingParam){
-           $checkingParam->clearState();
-       }
-   }
+    private function clearParams(){
+        foreach ($this->checkingParams as $checkingParam){
+            $checkingParam->clearState();
+        }
+    }
 }
 
 $firstDoubleParam = new DoubleParam("{", "}");
@@ -151,9 +167,9 @@ $stringValidator = new StringValidator();
 $stringValidator->addValidationParam([$firstDoubleParam, $secondDoubleParam, $lastDoubleParam, $firstSingleParam]);
 
 var_dump($stringValidator->validateString("(){()}[])("));
-var_dump($stringValidator->validateString("(){()}[{]}"));
-var_dump($stringValidator->validateString("{{[[sf()}"));
-var_dump($stringValidator->validateString("{{(++_)}"));;
-var_dump($stringValidator->validateString("{{[](safd)}}"));
-var_dump($stringValidator->validateString("~{{[](safd)}}"));
-var_dump($stringValidator->validateString("~{{[](safd)}}~"));
+//var_dump($stringValidator->validateString("(){()}[{]}"));
+//var_dump($stringValidator->validateString("{{[[sf()}"));
+//var_dump($stringValidator->validateString("{{(++_)}"));;
+//var_dump($stringValidator->validateString("{{[](safd)}}"));
+//var_dump($stringValidator->validateString("~{{[](safd)}}"));
+//var_dump($stringValidator->validateString("~{{[](safd)}}~"));
